@@ -52,7 +52,7 @@ var fire = {
     return fdr.ref().child(name);
   },
 
-  getTestRef: function() {
+  getBoardRef: function() {
     return fdr.ref('testBoard');
   },
 
@@ -60,8 +60,12 @@ var fire = {
     return fdr.ref(`testBoard/${letter}/${number}`);
   },
 
+  getTileChildRef: function(letter, number, key) {
+    return fdr.ref(`testBoard/${letter}/${number}/${key}`);
+  },
+
   resetGame: function() {
-    let testBoardRef = fdr.ref('testBoard/')
+    let testBoardRef = fdr.ref('testBoard/');
     testBoardRef.set({
       a: {1: {x: 30, y: 30, hasBoat: false, isClicked: false}, 2: {x: 30, y:90, hasBoat: false, isClicked: false}, 3: {x: 30, y:150, hasBoat: false, isClicked: false}, 4: {x: 30, y:210, hasBoat: false, isClicked: false}, 5: {x: 30, y:270, hasBoat: false, isClicked: false}, 6: {x: 30, y:330, hasBoat: false, isClicked: false}, 7: {x: 30, y:390, hasBoat: false, isClicked: false}, 8: {x: 30, y:450, hasBoat: false, isClicked: false}, 9: {x: 30, y:510, hasBoat: false, isClicked: false}, 10: {x: 30, y:570, hasBoat: false, isClicked: false}},
 

@@ -4,7 +4,11 @@ var firebase = require('./firebaseApp');
 
 var canvas = document.getElementById('boatCanvas');
 var ctx = canvas.getContext('2d');
-console.log("ctx", ctx);
+
+var isClicked = 'isClicked';
+var hasBoat = 'hasBoat';
+var halfWidth = (canvas.width/10)/2;
+var halfHeight = (canvas.height/10)/2;
 
 var canvasArea = {
   drawGrid: () => {
@@ -18,7 +22,25 @@ var canvasArea = {
       ctx.lineTo(canvas.width, y);
     }
     ctx.stroke();
-
+    let boardRef = firebase.getBoardRef();
+    boardRef.on("value", function(data) {
+      let eachRow = data.val();
+      let eachRowKey = Object.keys(eachRow);
+      $(eachRowKey).each((lindex, litem) => {
+        let eachLetter = eachRow[litem];
+        let eachLetterKey = Object.keys(eachLetter);
+        $(eachLetterKey).each((nindex, nitem) => {
+          let thisTile = eachLetter[nitem];
+          let thisTileClickRef = firebase.getTileChildRef(litem, nitem, isClicked);
+          console.log(thisTile);
+          if (thisTile.isClicked === true) {
+            console.log(thisTileClickRef);
+            ctx.fillStyle = "red";
+            ctx.fillRect(thisTile.x-halfWidth, thisTile.y-halfHeight, 60, 60);
+          }
+        });
+      });
+    });
   },
 
   getCoords: function(e) {
@@ -30,37 +52,31 @@ var canvasArea = {
   },
 
   clickDetect: function() {
-    $('canvas').on('click', function(e) {
-      let mousePos = canvasArea.getCoords(e);
-      let testBoardRef = firebase.getTestRef();
-      testBoardRef.once("value", function(data) {
-        console.log(data);
-        let eachRow = data.val();
-        let eachRowKey = Object.keys(eachRow);
-        $(eachRowKey).each((nindex, nitem) => {
-          let eachLetter = eachRow[nitem];
-          let eachLetterKey = Object.keys(eachLetter);
-          $(eachLetterKey).each((lindex, litem) => {
-            let thisTile = eachLetter[litem];
-            if ((thisTile.x - mousePos.x < 30 && thisTile.y - mousePos.y < 30) && (mousePos.x -thisTile.x < 30 && mousePos.y - thisTile.y < 30)) {
-              console.log("x", mousePos.x);
-              console.log("y", mousePos.y);
-              console.log("thisTile.x", thisTile.x);
-              console.log("thisTile.y", thisTile.y);
-              console.log("ThisTile", nitem, litem);
-              ctx.fillStyle = "red";
-              ctx.fillRect(thisTile.x-30, thisTile.y-30, 60, 60);
-              let thisTileRef = firebase.getEachTileRef(nitem, litem);
-              thisTileRef.update({
-                'isClicked': true
-              });
-            }
-          });
+    $('canvas').on('click', canvasArea.updateIsClicked);
+  },
+
+  updateIsClicked: function(e) {
+    let mousePos = canvasArea.getCoords(e);
+    let boardRef = firebase.getBoardRef();
+    boardRef.once("value", function(data) {
+      let eachRow = data.val();
+      let eachRowKey = Object.keys(eachRow);
+      $(eachRowKey).each((lindex, litem) => {
+        let eachLetter = eachRow[litem];
+        let eachLetterKey = Object.keys(eachLetter);
+        $(eachLetterKey).each((nindex, nitem) => {
+          let thisTile = eachLetter[nitem];
+          if ((thisTile.x - mousePos.x < halfWidth && thisTile.y - mousePos.y < halfHeight) && (mousePos.x -thisTile.x < halfWidth && mousePos.y - thisTile.y < halfHeight)) {
+            let thisTileRef = firebase.getEachTileRef(litem, nitem);
+            thisTileRef.update({
+              'isClicked': true
+            });
+          }
         });
       });
     });
+    canvasArea.draw();
   },
-
 
   draw: function() {
     canvasArea.drawGrid();
